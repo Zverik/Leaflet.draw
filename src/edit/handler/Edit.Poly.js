@@ -124,10 +124,13 @@ L.Edit.Poly = L.Handler.extend({
 	},
 
 	_onMarkerClick: function (e) {
-		// we want to remove the marker on click, but if latlng count < 3, polyline would be invalid
-		if (this._poly._latlngs.length < (L.Polygon && (this._poly instanceof L.Polygon) ? 4 : 3)) { return; }
+		var minPoints = L.Polygon && (this._poly instanceof L.Polygon) ? 4 : 3,
+			marker = e.target;
 
-		var marker = e.target;
+		// If removing this point would create an invalid polyline/polygon don't remove
+		if (this._poly._latlngs.length < minPoints) {
+			return;
+		}
 
 		// remove the marker
 		this._removeMarker(marker);
@@ -231,10 +234,10 @@ L.Edit.Poly = L.Handler.extend({
 
 	_getMiddleLatLng: function (marker1, marker2) {
 		var map = this._poly._map,
-		    p1 = map.latLngToLayerPoint(marker1.getLatLng()),
-		    p2 = map.latLngToLayerPoint(marker2.getLatLng());
+		    p1 = map.project(marker1.getLatLng()),
+		    p2 = map.project(marker2.getLatLng());
 
-		return map.layerPointToLatLng(p1._add(p2)._divideBy(2));
+		return map.unproject(p1._add(p2)._divideBy(2));
 	}
 });
 
